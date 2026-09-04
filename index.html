@@ -356,6 +356,8 @@ body::before{
 <body>
 
 <button class="sound" id="soundBtn" type="button" aria-pressed="true">SOUND: ON</button>
+<audio id="ringAudio" src="ring.wav" loop preload="auto"></audio>
+<audio id="pickupAudio" src="pickup.wav" preload="auto"></audio>
 
 <!-- ============ SCREEN 1 : THE CALL ============ -->
 <section id="call" aria-label="Incoming call">
@@ -555,111 +557,51 @@ body::before{
   document.getElementById("cord2").setAttribute("d", cordPath);
 
   /* ---------- the ringer ----------
-     On by default. Browsers block audio until the page has been interacted
-     with, so if the context starts suspended we ring on the first gesture. */
-  var ctx = null, ringing = false, wantSound = true, timers = [], live = [], bornCold = false;
+     An <audio> element rather than Web Audio, deliberately: iOS silences Web
+     Audio whenever the hardware ring switch is on, but plays media elements
+     regardless. Autoplay is still withheld until the page has been interacted
+     with, so we retry on every gesture until it is genuinely playing. */
+  var ringAudio = document.getElementById("ringAudio");
+  var pickupAudio = document.getElementById("pickupAudio");
   var soundBtn = document.getElementById("soundBtn");
   var hint = document.getElementById("hint");
-  var answered = false;
+  var wantSound = true, ringing = false, answered = false;
 
-  function audioReady(cold) {
-    if (!ctx) {
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return false;
-      ctx = new AC();
-      bornCold = !!cold; // built without a gesture behind it, so possibly stuck
-    }
-    return true;
-  }
+  ringAudio.volume = 0.85;
+  pickupAudio.volume = 0.5;
 
-  // A one-sample silent buffer played inside a gesture. This is the nudge iOS
-  // actually accepts as permission to make sound.
-  function nudge() {
-    try {
-      var src = ctx.createBufferSource();
-      src.buffer = ctx.createBuffer(1, 1, 22050);
-      src.connect(ctx.destination);
-      src.start(0);
-    } catch (e) {}
-  }
-
-  // two bells beating against each other, gated fast — a mechanical trill
-  function burst(at, dur) {
-    var master = ctx.createGain();
-    master.gain.setValueAtTime(0, at);
-    master.gain.linearRampToValueAtTime(0.16, at + 0.02);
-    master.gain.setValueAtTime(0.16, at + dur - 0.05);
-    master.gain.linearRampToValueAtTime(0, at + dur);
-    master.connect(ctx.destination);
-
-    var trem = ctx.createGain();
-    trem.gain.value = 0.55;
-    trem.connect(master);
-
-    var lfo = ctx.createOscillator(), lfoGain = ctx.createGain();
-    lfo.frequency.value = 21;
-    lfoGain.gain.value = 0.45;
-    lfo.connect(lfoGain).connect(trem.gain);
-    lfo.start(at);
-    lfo.stop(at + dur);
-    live.push(lfo);
-
-    [1054, 1330].forEach(function (f) {
-      var osc = ctx.createOscillator(), g = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.value = f;
-      g.gain.value = 0.5;
-      osc.connect(g).connect(trem);
-      osc.start(at);
-      osc.stop(at + dur);
-      live.push(osc);
-    });
-  }
-
-  function ringCycle() {
-    if (!ringing || !wantSound || !ctx) return;
-    live = []; // last cycle's nodes have finished
-    burst(ctx.currentTime + 0.02, 0.42);
-    burst(ctx.currentTime + 0.62, 0.42);
-    timers.push(setTimeout(ringCycle, 3400));
-  }
+  // let the element itself be the source of truth about whether it is ringing
+  ringAudio.addEventListener("playing", function () {
+    ringing = true;
+    if (!answered) hint.textContent = "Pick up when you're ready";
+  });
+  ringAudio.addEventListener("pause", function () { ringing = false; });
 
   function startRing() {
-    if (!wantSound || ringing || answered) return;
-    if (!ctx || ctx.state !== "running") return; // still blocked; unlock retries
-    ringing = true;
-    hint.textContent = "Pick up when you're ready";
-    ringCycle();
+    if (!wantSound || answered || ringing) return;
+    var p = ringAudio.play();
+    if (p && p.catch) p.catch(function () { /* still blocked; a gesture retries */ });
   }
 
   function stopRing() {
+    try { ringAudio.pause(); ringAudio.currentTime = 0; } catch (e) {}
     ringing = false;
-    timers.forEach(clearTimeout);
-    timers = [];
-    // cut what's already scheduled, so picking up silences it at once
-    live.forEach(function (node) { try { node.stop(); } catch (e) {} });
-    live = [];
   }
 
-  /* Audio stays blocked until the page has been interacted with, and one
-     attempt at unlocking it is not reliable — a context built before any
-     interaction can stay stuck suspended. So: rebuild it inside the gesture
-     if it looks stuck, nudge it, and keep trying on every gesture until it is
-     genuinely ringing. The guards make this a no-op once it is. */
+  function clickSound() {
+    if (!wantSound) return;
+    try { pickupAudio.currentTime = 0; } catch (e) {}
+    var p = pickupAudio.play();
+    if (p && p.catch) p.catch(function () {});
+  }
+
+  // One attempt is not reliable, so this stays bound and keeps trying. The
+  // guards above make it a no-op the moment the ring is actually going.
   function unlock(e) {
     if (!wantSound || answered || ringing) return;
     if (e && e.target && e.target.closest &&
         (e.target.closest("#soundBtn") || e.target.closest("#answerBtn"))) return;
-
-    if (ctx && bornCold && ctx.state !== "running") {
-      try { ctx.close(); } catch (err) {}
-      ctx = null;
-    }
-    if (!audioReady(false)) return;
-    nudge();
-    if (ctx.state !== "running") ctx.resume();
     startRing();
-    if (!ringing) setTimeout(startRing, 90); // resume can land a tick later
   }
 
   function setSound(on) {
@@ -667,7 +609,7 @@ body::before{
     soundBtn.textContent = "SOUND: " + (on ? "ON" : "OFF");
     soundBtn.setAttribute("aria-pressed", String(on));
     if (on) {
-      unlock({}); // called from the button's own click, so a gesture is live
+      startRing();
       hint.textContent = "Pick up when you're ready";
     } else {
       stopRing();
@@ -684,12 +626,7 @@ body::before{
     document.addEventListener(evt, unlock, true);
   });
 
-  // and try straight away, for browsers that already trust this page
-  (function () {
-    if (!audioReady(true)) return;
-    if (ctx.state === "running") startRing();
-    else ctx.resume().then(function () { startRing(); }).catch(function () {});
-  })();
+  startRing(); // browsers that already allow it start ringing at once
 
   /* ---------- pick up / hang up ---------- */
   var call = document.getElementById("call");
@@ -706,20 +643,6 @@ body::before{
     "We can do this all day."
   ];
   var quipIndex = 0;
-
-  function clickSound() {
-    if (!wantSound || !audioReady()) return;
-    var now = ctx.currentTime;
-    var osc = ctx.createOscillator(), g = ctx.createGain();
-    osc.type = "square";
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(90, now + 0.09);
-    g.gain.setValueAtTime(0.12, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-    osc.connect(g).connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.13);
-  }
 
   function pad(n) { return (n < 10 ? "0" : "") + n; }
 

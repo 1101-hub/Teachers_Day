@@ -355,7 +355,7 @@ body::before{
 </head>
 <body>
 
-<button class="sound" id="soundBtn" type="button" aria-pressed="false">SOUND: OFF</button>
+<button class="sound" id="soundBtn" type="button" aria-pressed="true">SOUND: ON</button>
 
 <!-- ============ SCREEN 1 : THE CALL ============ -->
 <section id="call" aria-label="Incoming call">
@@ -411,7 +411,7 @@ body::before{
   </div>
 
   <p class="quip" id="quip" role="status" aria-live="polite"></p>
-  <p class="hint" id="hint">Tap anywhere to switch the ringer on</p>
+  <p class="hint" id="hint">Tap anywhere if you can&rsquo;t hear it ringing</p>
 </section>
 
 <!-- ============ SCREEN 2 : THE INVITE ============ -->
@@ -554,8 +554,10 @@ body::before{
   document.getElementById("cord").setAttribute("d", cordPath);
   document.getElementById("cord2").setAttribute("d", cordPath);
 
-  /* ---------- the ringer (Web Audio needs a gesture first) ---------- */
-  var ctx = null, ringing = false, wantSound = false, timers = [];
+  /* ---------- the ringer ----------
+     On by default. Browsers block audio until the page has been interacted
+     with, so if the context starts suspended we ring on the first gesture. */
+  var ctx = null, ringing = false, wantSound = true, timers = [], live = [];
   var soundBtn = document.getElementById("soundBtn");
   var hint = document.getElementById("hint");
   var answered = false;
@@ -566,7 +568,6 @@ body::before{
       if (!AC) return false;
       ctx = new AC();
     }
-    if (ctx.state === "suspended") ctx.resume();
     return true;
   }
 
@@ -589,6 +590,7 @@ body::before{
     lfo.connect(lfoGain).connect(trem.gain);
     lfo.start(at);
     lfo.stop(at + dur);
+    live.push(lfo);
 
     [1054, 1330].forEach(function (f) {
       var osc = ctx.createOscillator(), g = ctx.createGain();
@@ -598,11 +600,13 @@ body::before{
       osc.connect(g).connect(trem);
       osc.start(at);
       osc.stop(at + dur);
+      live.push(osc);
     });
   }
 
   function ringCycle() {
     if (!ringing || !wantSound || !ctx) return;
+    live = []; // last cycle's nodes have finished
     burst(ctx.currentTime + 0.02, 0.42);
     burst(ctx.currentTime + 0.62, 0.42);
     timers.push(setTimeout(ringCycle, 3400));
@@ -611,7 +615,9 @@ body::before{
   function startRing() {
     if (!wantSound || ringing || answered) return;
     if (!audioReady()) return;
+    if (ctx.state !== "running") return; // still blocked; primeAudio will retry
     ringing = true;
+    hint.textContent = "Pick up when you're ready";
     ringCycle();
   }
 
@@ -619,6 +625,20 @@ body::before{
     ringing = false;
     timers.forEach(clearTimeout);
     timers = [];
+    // cut what's already scheduled, so picking up silences it at once
+    live.forEach(function (node) { try { node.stop(); } catch (e) {} });
+    live = [];
+  }
+
+  // Get the ringer going if the browser will allow it yet. If audio is still
+  // held back, the first gesture calls this again.
+  function primeAudio() {
+    if (!wantSound || answered) return;
+    if (!audioReady()) return;
+    if (ctx.state === "running") { startRing(); return; }
+    ctx.resume().then(function () {
+      if (wantSound && !answered) startRing();
+    }).catch(function () { /* needs a real gesture; the listener below covers it */ });
   }
 
   function setSound(on) {
@@ -626,8 +646,8 @@ body::before{
     soundBtn.textContent = "SOUND: " + (on ? "ON" : "OFF");
     soundBtn.setAttribute("aria-pressed", String(on));
     if (on) {
-      startRing();
-      hint.textContent = "Ringer on — pick up when you're ready";
+      primeAudio();
+      hint.textContent = "Pick up when you're ready";
     } else {
       stopRing();
       hint.textContent = "Ringer off";
@@ -639,12 +659,18 @@ body::before{
     setSound(!wantSound);
   });
 
-  // the first tap anywhere switches the ringer on
-  document.addEventListener("pointerdown", function once(e) {
-    if (e.target.closest("#soundBtn")) return;
-    document.removeEventListener("pointerdown", once);
-    if (!answered) setSound(true);
-  });
+  // The ringer is on by default, but audio stays blocked until the page has
+  // been interacted with — so ring at the first opportunity we get.
+  function firstGesture(e) {
+    if (e.target && e.target.closest && e.target.closest("#soundBtn")) return;
+    document.removeEventListener("pointerdown", firstGesture);
+    document.removeEventListener("keydown", firstGesture);
+    primeAudio();
+  }
+  document.addEventListener("pointerdown", firstGesture);
+  document.addEventListener("keydown", firstGesture);
+
+  primeAudio(); // in case this browser already trusts us
 
   /* ---------- pick up / hang up ---------- */
   var call = document.getElementById("call");

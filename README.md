@@ -1,6 +1,6 @@
 # Who's Calling — Teachers' Day invite
 
-An interactive invitation for **Teachers' Day at Atomic Energy Central School, Mysore** — Saturday, 5 September 2026.
+An interactive invitation for **Teachers' Day at Atomic Energy Central School, Mysuru** — Saturday, 5 September 2026.
 
 A rotary phone rings on the landing screen. Pick up, and the call connects to the invitation and the day's programme.
 

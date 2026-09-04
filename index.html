@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Who's Calling — Teachers' Day at AECS Mysore</title>
-<meta name="description" content="An incoming call for the teachers of Atomic Energy Central School, Mysore. Pick up for the Teachers' Day programme, 5 September 2026.">
+<title>Who's Calling — Teachers' Day at AECS Mysuru</title>
+<meta name="description" content="An incoming call for the teachers of Atomic Energy Central School, Mysuru. Pick up for the Teachers' Day programme, 5 September 2026.">
 <meta name="theme-color" content="#1E33C4">
 <meta property="og:title" content="Who's Calling?">
-<meta property="og:description" content="Pick up — it's Teachers' Day. AECS Mysore, 5 September 2026.">
+<meta property="og:description" content="Pick up — it's Teachers' Day. AECS Mysuru, 5 September 2026.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='.92em' font-size='58'>&#9742;</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,10 +70,13 @@ body::before{
 /* ============ screen 1 : the call ============ */
 #call{
   position:relative; z-index:2;
+  min-height:100vh;
   min-height:100svh;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:clamp(14px,2.4vh,26px);
-  padding:clamp(18px,4vw,40px) 18px clamp(28px,5vh,48px);
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center;
+  justify-content:safe center; /* never clip the top when it overflows */
+  gap:clamp(12px,2.2vh,26px);
+  padding:clamp(16px,4vw,40px) 18px clamp(24px,5vh,48px);
   text-align:center;
   transition:opacity .42s ease, transform .42s ease;
 }
@@ -103,7 +106,12 @@ body::before{
 @keyframes blip{50%{opacity:.15}}
 
 /* the phone */
-.phone-zone{position:relative; display:grid; place-items:center; width:min(100%,460px)}
+/* one lever sizes the phone: the smaller of the column, a cap, and the viewport height */
+.phone-zone{
+  position:relative; display:grid; place-items:center;
+  width:min(94%,420px);            /* fallback where svh is unsupported */
+  width:min(94%,420px,44svh);
+}
 .wave{
   position:absolute; border:5px solid var(--aqua); border-radius:50%;
   width:56%; aspect-ratio:1/1; opacity:0; animation:wave 2.6s ease-out infinite;
@@ -111,7 +119,7 @@ body::before{
 .wave:nth-of-type(2){animation-delay:.55s; border-color:var(--pink)}
 .wave:nth-of-type(3){animation-delay:1.1s; border-color:var(--yellow)}
 @keyframes wave{0%{transform:scale(.55);opacity:.85}70%{opacity:.18}100%{transform:scale(1.75);opacity:0}}
-.phone{width:min(96%,420px); height:auto; position:relative; filter:drop-shadow(10px 12px 0 rgba(11,20,90,.55))}
+.phone{width:100%; height:auto; position:relative; filter:drop-shadow(8px 10px 0 rgba(11,20,90,.55))}
 .rattle{animation:rattle 3.4s ease-in-out infinite; transform-origin:200px 240px}
 @keyframes rattle{
   0%,26%,100%{transform:rotate(0)}
@@ -271,6 +279,7 @@ body::before{
 .card li{display:flex; align-items:baseline; gap:8px; font-family:var(--type); font-size:14.5px; color:var(--ink)}
 .card li .dots{flex:1 1 auto; border-bottom:2px dotted var(--rule); translate:0 -4px; min-width:14px}
 .card li .tm{font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; color:#1B2C7A}
+.card li .tm i{font-style:normal; font-size:.76em; font-weight:400; opacity:.62; margin-left:2px}
 .card li.mark .d{font-weight:700}
 .card li.mark .tm{background:var(--yellow); padding:1px 5px; border:2px solid var(--ink)}
 .card .after{
@@ -292,9 +301,51 @@ body::before{
   color:rgba(251,244,228,.55); margin:34px 0 0; text-transform:uppercase;
 }
 
+/* ============ phones ============ */
+/* narrow: straighten the collage so nothing tips off the edge */
 @media (max-width:560px){
   .card,.note,.signoff{--rot:0deg}
   .ransom span{transform:none}
+  .cards{gap:22px}
+  .card{padding:26px 16px 20px}
+  .note{padding:30px 20px 34px}
+  .signoff{border-width:3px}
+}
+@media (max-width:380px){
+  .ransom{gap:2px}
+  .ransom span{font-size:31px; border-width:2px}
+  .ransom span:nth-child(6n+3),.ransom span:nth-child(6n+6){font-size:24px}
+  .card li{font-size:13.5px; gap:6px}
+  .card{padding:24px 14px 18px}
+  .act{font-size:10px; letter-spacing:.12em}
+}
+/* short portrait: give the phone and the shout less room so it all fits unscrolled */
+@media (max-height:700px) and (orientation:portrait){
+  #call{gap:clamp(8px,1.4vh,16px)}
+  .shout .who{font-size:clamp(38px,10vw,64px)}
+  .shout .calling{font-size:clamp(24px,6.6vw,44px)}
+  .quip{font-size:17px; min-height:1.3em}
+  .phone-zone{width:min(94%,420px,38svh)}
+}
+/* landscape phones: stand the phone beside the text instead of stacking */
+@media (max-height:600px) and (orientation:landscape){
+  #call{
+    display:grid;
+    grid-template-columns:minmax(0,auto) minmax(0,1fr);
+    align-content:center; justify-items:center;
+    column-gap:clamp(16px,4vw,44px); row-gap:6px;
+    padding:14px 20px;
+  }
+  .phone-zone{grid-column:1; grid-row:1 / span 5; align-self:center; width:min(38vw,300px,80svh)}
+  .shout,.caller,.actions,.quip,.hint{grid-column:2}
+  .shout .who{font-size:clamp(34px,7vw,60px)}
+  .shout .calling{font-size:clamp(22px,4.6vw,40px)}
+  .quip{min-height:1.2em; font-size:17px}
+}
+/* touch: bigger tap targets */
+@media (pointer:coarse){
+  .sound{font-size:12px; padding:.62em 1.05em}
+  .btn--decline{padding:.72em 1.3em}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important; animation-iteration-count:1!important; transition-duration:.001ms!important}
@@ -320,7 +371,7 @@ body::before{
     <span class="calling">CALLING</span>
   </h1>
 
-  <p class="caller"><span class="live" aria-hidden="true"></span> INCOMING &nbsp;&middot;&nbsp; AECS MYSORE &nbsp;&middot;&nbsp; MOBILE</p>
+  <p class="caller"><span class="live" aria-hidden="true"></span> INCOMING &nbsp;&middot;&nbsp; AECS MYSURU &nbsp;&middot;&nbsp; MOBILE</p>
 
   <div class="phone-zone">
     <span class="wave" aria-hidden="true"></span>
@@ -365,7 +416,7 @@ body::before{
 
 <!-- ============ SCREEN 2 : THE INVITE ============ -->
 <main id="invite" aria-label="Teachers' Day invitation" tabindex="-1">
-  <div class="callbar"><span class="live" aria-hidden="true"></span> ON CALL WITH AECS MYSORE &nbsp;&middot;&nbsp; <b id="timer">00:00</b></div>
+  <div class="callbar"><span class="live" aria-hidden="true"></span> ON CALL WITH AECS MYSURU &nbsp;&middot;&nbsp; <b id="timer">00:00</b></div>
 
   <span class="star" style="width:54px;height:54px;background:var(--pink);top:96px;left:2%"></span>
   <span class="aster" style="width:38px;height:38px;background:var(--aqua);top:150px;right:3%"></span>
@@ -375,7 +426,7 @@ body::before{
     <h1 class="ransom reveal" style="animation-delay:.14s" aria-label="Teachers' Day">
       <span aria-hidden="true">T</span><span aria-hidden="true">E</span><span aria-hidden="true">A</span><span aria-hidden="true">C</span><span aria-hidden="true">H</span><span aria-hidden="true">E</span><span aria-hidden="true">R</span><span aria-hidden="true">S</span><span class="apos" aria-hidden="true">&rsquo;</span><span class="sp" aria-hidden="true"></span><span aria-hidden="true">D</span><span aria-hidden="true">A</span><span aria-hidden="true">Y</span>
     </h1>
-    <p class="school reveal" style="animation-delay:.24s">Atomic Energy Central School, Mysore</p>
+    <p class="school reveal" style="animation-delay:.24s">Atomic Energy Central School, Mysuru</p>
     <p class="when reveal" style="animation-delay:.32s">SATURDAY <em>&middot;</em> 05 <em>&middot;</em> 09 <em>&middot;</em> 2026</p>
   </header>
 
@@ -386,65 +437,67 @@ body::before{
   </section>
 
   <h2 class="prog-title">THE PROGRAMME</h2>
-  <p class="prog-sub">Three sittings &middot; assembly ground, then auditorium</p>
+  <p class="prog-sub">Three sittings &middot; all in the auditorium</p>
 
   <div class="cards">
     <article class="card reveal" style="--pin:#FF4D9D; animation-delay:.5s">
       <span class="pin" aria-hidden="true"></span>
       <p class="act" style="--tab:var(--yellow)">ACT ONE &middot; MORNING</p>
       <h3>Assembly</h3>
-      <p class="where">Assembly Ground &middot; from 8:40 AM</p>
+      <p class="where">Auditorium &middot; from 8:40 am</p>
       <ul>
-        <li class="mark"><span class="d">Lighting of the lamp</span><span class="dots"></span><span class="tm">8:40</span></li>
-        <li><span class="d">Garlanding Dr. Radhakrishnan&rsquo;s portrait</span><span class="dots"></span><span class="tm">8:45</span></li>
-        <li><span class="d">Speech &mdash; Arnav Babu, Std. V</span><span class="dots"></span><span class="tm">8:50</span></li>
-        <li><span class="d">Speech by the Principal</span><span class="dots"></span><span class="tm">8:55</span></li>
-        <li><span class="d">Address by the Incharge, Std. X</span><span class="dots"></span><span class="tm">9:00</span></li>
-        <li><span class="d">National Anthem</span><span class="dots"></span><span class="tm">9:05</span></li>
+        <li class="mark"><span class="d">Lighting of the lamp</span><span class="dots"></span><span class="tm">8:40<i>am</i></span></li>
+        <li><span class="d">Garlanding Dr. Radhakrishnan&rsquo;s portrait</span><span class="dots"></span><span class="tm">8:45<i>am</i></span></li>
+        <li><span class="d">Speech &mdash; Arnav Babu, Std. V</span><span class="dots"></span><span class="tm">8:50<i>am</i></span></li>
+        <li><span class="d">Speech &mdash; Inchara, Std. X</span><span class="dots"></span><span class="tm">8:55<i>am</i></span></li>
+        <li><span class="d">Address by the Principal</span><span class="dots"></span><span class="tm">9:00<i>am</i></span></li>
+        <li><span class="d">National Anthem</span><span class="dots"></span><span class="tm">9:15<i>am</i></span></li>
       </ul>
-      <p class="after">Ends 9:15 &mdash; classes as usual till 10:45</p>
+      <p class="after">Then back to class till 10:45</p>
     </article>
 
     <article class="card reveal" style="--pin:#33D6C0; animation-delay:.6s">
       <span class="pin" aria-hidden="true"></span>
       <p class="act" style="--tab:var(--aqua)">ACT TWO &middot; LATE MORNING</p>
       <h3>The Students&rsquo; Show</h3>
-      <p class="where">Auditorium &middot; assemble 10:45 AM</p>
+      <p class="where">Auditorium &middot; assemble 10:45 am</p>
       <ul>
-        <li class="mark"><span class="d">Best Student-Teacher Award</span><span class="dots"></span><span class="tm">10:50</span></li>
-        <li><span class="d">Dance &mdash; Primary, Std. V</span><span class="dots"></span><span class="tm">10:55</span></li>
-        <li><span class="d">Dance &mdash; Std. X boys</span><span class="dots"></span><span class="tm">11:05</span></li>
-        <li><span class="d">Dance &mdash; Std. X girls</span><span class="dots"></span><span class="tm">11:10</span></li>
-        <li><span class="d">Talks by our alumni</span><span class="dots"></span><span class="tm">11:20</span></li>
-        <li class="mark"><span class="d">Game for the teachers</span><span class="dots"></span><span class="tm">11:30</span></li>
+        <li class="mark"><span class="d">Best Student-Teacher Award</span><span class="dots"></span><span class="tm">10:50<i>am</i></span></li>
+        <li><span class="d">Dance &mdash; Primary, Std. V</span><span class="dots"></span><span class="tm">10:55<i>am</i></span></li>
+        <li><span class="d">Dance &mdash; Std. X boys</span><span class="dots"></span><span class="tm">11:05<i>am</i></span></li>
+        <li><span class="d">Dance &mdash; Std. X girls</span><span class="dots"></span><span class="tm">11:10<i>am</i></span></li>
+        <li><span class="d">Talk by our alumni &mdash; 1</span><span class="dots"></span><span class="tm">11:20<i>am</i></span></li>
+        <li><span class="d">Talk by our alumni &mdash; 2</span><span class="dots"></span><span class="tm">11:25<i>am</i></span></li>
+        <li class="mark"><span class="d">Game for the teachers</span><span class="dots"></span><span class="tm">11:30<i>am</i></span></li>
+        <li><span class="d">Dispersal of students</span><span class="dots"></span><span class="tm">12:15<i>pm</i></span></li>
       </ul>
-      <p class="after">Students disperse at 12:15</p>
     </article>
 
     <article class="card reveal" style="--pin:#FFC81F; animation-delay:.7s">
       <span class="pin" aria-hidden="true"></span>
       <p class="act" style="--tab:var(--pink)">ACT THREE &middot; AFTERNOON</p>
       <h3>For the Teachers</h3>
-      <p class="where">Auditorium &middot; assemble 12:45 PM</p>
+      <p class="where">Auditorium &middot; assemble 12:45 pm</p>
       <ul>
-        <li class="mark"><span class="d">Welcoming the Chief Guest</span><span class="dots"></span><span class="tm">12:45</span></li>
-        <li><span class="d">Lighting of the lamp</span><span class="dots"></span><span class="tm">12:50</span></li>
-        <li><span class="d">Garlanding the portrait</span><span class="dots"></span><span class="tm">12:55</span></li>
-        <li><span class="d">Group song by the teachers</span><span class="dots"></span><span class="tm">1:00</span></li>
-        <li><span class="d">Dance &mdash; Primary, Std. V</span><span class="dots"></span><span class="tm">1:05</span></li>
-        <li><span class="d">Dance &mdash; Secondary, Std. X</span><span class="dots"></span><span class="tm">1:15</span></li>
-        <li class="mark"><span class="d">Gift vouchers for teachers</span><span class="dots"></span><span class="tm">1:20</span></li>
-        <li><span class="d">Vote of thanks &mdash; Vice Principal</span><span class="dots"></span><span class="tm">1:55</span></li>
-        <li class="mark"><span class="d">Lunch</span><span class="dots"></span><span class="tm">2:00</span></li>
+        <li class="mark"><span class="d">Welcoming the Chief Guest</span><span class="dots"></span><span class="tm">12:45<i>pm</i></span></li>
+        <li><span class="d">Lighting of the lamp</span><span class="dots"></span><span class="tm">12:50<i>pm</i></span></li>
+        <li><span class="d">Garlanding Dr. Radhakrishnan&rsquo;s portrait</span><span class="dots"></span><span class="tm">12:55<i>pm</i></span></li>
+        <li><span class="d">Group song by the teachers</span><span class="dots"></span><span class="tm">1:00<i>pm</i></span></li>
+        <li><span class="d">Dance &mdash; Primary, Std. V</span><span class="dots"></span><span class="tm">1:05<i>pm</i></span></li>
+        <li><span class="d">Dance &mdash; Secondary, Std. X</span><span class="dots"></span><span class="tm">1:15<i>pm</i></span></li>
+        <li class="mark"><span class="d">Gift vouchers for teachers</span><span class="dots"></span><span class="tm">1:20<i>pm</i></span></li>
+        <li><span class="d">Vote of thanks &mdash; Vice Principal</span><span class="dots"></span><span class="tm">1:55<i>pm</i></span></li>
+        <li class="mark"><span class="d">Lunch</span><span class="dots"></span><span class="tm">2:00<i>pm</i></span></li>
       </ul>
-      <p class="after">Please be seated by 12:45 sharp!</p>
+      <p class="after">Please be seated by 12:45 pm sharp!</p>
     </article>
   </div>
 
   <section class="signoff reveal" style="animation-delay:.8s">
     <h4>SEE YOU THERE</h4>
-    <p>Programme coordinators<br><span class="names">Mrs. Mythreyi &nbsp;&amp;&nbsp; Mrs. Saroja</span></p>
-    <p style="margin-top:14px">With love, from your students &mdash; AECS, Mysore</p>
+    <p>Every rehearsal that ran late, every list checked twice, every chair put back in its row &mdash; the <span class="names">Student Council</span> built this day for you. Thank you.</p>
+    <p style="margin-top:16px">Programme coordinators<br><span class="names">Mrs. Mythreyi &nbsp;&amp;&nbsp; Mrs. Saroja</span></p>
+    <p style="margin-top:16px">With love, from your students &mdash; AECS, Mysuru</p>
     <div class="hangup">
       <button class="btn btn--decline" id="hangupBtn" type="button">HANG UP</button>
     </div>

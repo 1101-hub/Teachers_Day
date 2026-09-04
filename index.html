@@ -557,18 +557,30 @@ body::before{
   /* ---------- the ringer ----------
      On by default. Browsers block audio until the page has been interacted
      with, so if the context starts suspended we ring on the first gesture. */
-  var ctx = null, ringing = false, wantSound = true, timers = [], live = [];
+  var ctx = null, ringing = false, wantSound = true, timers = [], live = [], bornCold = false;
   var soundBtn = document.getElementById("soundBtn");
   var hint = document.getElementById("hint");
   var answered = false;
 
-  function audioReady() {
+  function audioReady(cold) {
     if (!ctx) {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return false;
       ctx = new AC();
+      bornCold = !!cold; // built without a gesture behind it, so possibly stuck
     }
     return true;
+  }
+
+  // A one-sample silent buffer played inside a gesture. This is the nudge iOS
+  // actually accepts as permission to make sound.
+  function nudge() {
+    try {
+      var src = ctx.createBufferSource();
+      src.buffer = ctx.createBuffer(1, 1, 22050);
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch (e) {}
   }
 
   // two bells beating against each other, gated fast — a mechanical trill
@@ -614,8 +626,7 @@ body::before{
 
   function startRing() {
     if (!wantSound || ringing || answered) return;
-    if (!audioReady()) return;
-    if (ctx.state !== "running") return; // still blocked; primeAudio will retry
+    if (!ctx || ctx.state !== "running") return; // still blocked; unlock retries
     ringing = true;
     hint.textContent = "Pick up when you're ready";
     ringCycle();
@@ -630,15 +641,25 @@ body::before{
     live = [];
   }
 
-  // Get the ringer going if the browser will allow it yet. If audio is still
-  // held back, the first gesture calls this again.
-  function primeAudio() {
-    if (!wantSound || answered) return;
-    if (!audioReady()) return;
-    if (ctx.state === "running") { startRing(); return; }
-    ctx.resume().then(function () {
-      if (wantSound && !answered) startRing();
-    }).catch(function () { /* needs a real gesture; the listener below covers it */ });
+  /* Audio stays blocked until the page has been interacted with, and one
+     attempt at unlocking it is not reliable — a context built before any
+     interaction can stay stuck suspended. So: rebuild it inside the gesture
+     if it looks stuck, nudge it, and keep trying on every gesture until it is
+     genuinely ringing. The guards make this a no-op once it is. */
+  function unlock(e) {
+    if (!wantSound || answered || ringing) return;
+    if (e && e.target && e.target.closest &&
+        (e.target.closest("#soundBtn") || e.target.closest("#answerBtn"))) return;
+
+    if (ctx && bornCold && ctx.state !== "running") {
+      try { ctx.close(); } catch (err) {}
+      ctx = null;
+    }
+    if (!audioReady(false)) return;
+    nudge();
+    if (ctx.state !== "running") ctx.resume();
+    startRing();
+    if (!ringing) setTimeout(startRing, 90); // resume can land a tick later
   }
 
   function setSound(on) {
@@ -646,7 +667,7 @@ body::before{
     soundBtn.textContent = "SOUND: " + (on ? "ON" : "OFF");
     soundBtn.setAttribute("aria-pressed", String(on));
     if (on) {
-      primeAudio();
+      unlock({}); // called from the button's own click, so a gesture is live
       hint.textContent = "Pick up when you're ready";
     } else {
       stopRing();
@@ -659,18 +680,16 @@ body::before{
     setSound(!wantSound);
   });
 
-  // The ringer is on by default, but audio stays blocked until the page has
-  // been interacted with — so ring at the first opportunity we get.
-  function firstGesture(e) {
-    if (e.target && e.target.closest && e.target.closest("#soundBtn")) return;
-    document.removeEventListener("pointerdown", firstGesture);
-    document.removeEventListener("keydown", firstGesture);
-    primeAudio();
-  }
-  document.addEventListener("pointerdown", firstGesture);
-  document.addEventListener("keydown", firstGesture);
+  ["pointerdown", "touchend", "keydown", "click"].forEach(function (evt) {
+    document.addEventListener(evt, unlock, true);
+  });
 
-  primeAudio(); // in case this browser already trusts us
+  // and try straight away, for browsers that already trust this page
+  (function () {
+    if (!audioReady(true)) return;
+    if (ctx.state === "running") startRing();
+    else ctx.resume().then(function () { startRing(); }).catch(function () {});
+  })();
 
   /* ---------- pick up / hang up ---------- */
   var call = document.getElementById("call");
@@ -738,8 +757,8 @@ body::before{
     window.scrollTo(0, 0);
     answerBtn.focus();
     quip.textContent = "Calling back… that was quick.";
-    hint.textContent = wantSound ? "Ringer on — pick up when you're ready" : "Ringer off";
-    startRing();
+    hint.textContent = wantSound ? "Pick up when you're ready" : "Ringer off";
+    unlock({}); // hang-up is itself a gesture, so this rings straight away
     if (location.hash === "#invite") history.pushState({ screen: "call" }, "", location.pathname);
   }
 

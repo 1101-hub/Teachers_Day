@@ -67,7 +67,70 @@ body::before{
   clip-path:polygon(43% 0,57% 0,57% 33%,86% 16%,93% 28%,64% 45%,93% 62%,86% 74%,57% 57%,57% 90%,43% 90%,43% 57%,14% 74%,7% 62%,36% 45%,7% 28%,14% 16%,43% 33%);
 }
 
+/* ============ screen 0 : the lock screen ============ */
+.lock{
+  position:relative; z-index:3;
+  min-height:100vh;
+  min-height:100svh;
+  width:100%;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center;
+  justify-content:safe center;
+  gap:clamp(14px,2.8vh,28px);
+  padding:clamp(20px,6vw,48px) 20px;
+  background:transparent; border:0; cursor:pointer;
+  font-family:var(--type); color:var(--cream); text-align:center;
+  -webkit-tap-highlight-color:transparent;
+  transition:opacity .38s ease, transform .38s ease;
+}
+.lock[hidden]{display:none}
+.lock.is-gone{opacity:0; transform:scale(.94); pointer-events:none}
+
+.lock-top{
+  font-family:var(--sign); font-size:clamp(11px,2.6vw,14px); letter-spacing:.2em;
+  display:inline-flex; align-items:center; gap:9px; color:var(--cream);
+}
+.lock-top .live{
+  width:10px; height:10px; border-radius:50%; background:var(--red);
+  box-shadow:0 0 0 3px rgba(224,71,42,.3); animation:blip 1.1s steps(2,end) infinite;
+}
+.lock-name{
+  font-family:var(--display); font-size:clamp(44px,13vw,104px); line-height:.86;
+  color:var(--yellow); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill;
+  text-shadow:6px 7px 0 var(--blue-deep), 10px 11px 0 rgba(0,0,0,.32);
+  transform:rotate(-1.6deg);
+}
+.lock-ring{
+  position:relative; display:grid; place-items:center;
+  width:clamp(92px,25vw,136px); aspect-ratio:1/1; border-radius:50%;
+  background:var(--green); border:5px solid var(--ink);
+  box-shadow:0 8px 0 var(--ink);
+  animation:jiggle 1.5s ease-in-out infinite;
+}
+.lock-ring svg{width:50%; height:50%; fill:#062F13}
+.lock-ring::before, .lock-ring::after{
+  content:""; position:absolute; inset:-7px; border-radius:50%;
+  border:4px solid var(--aqua); opacity:0; animation:halo 2.2s ease-out infinite;
+}
+.lock-ring::after{animation-delay:1.1s; border-color:var(--yellow)}
+@keyframes halo{0%{transform:scale(1);opacity:.8} 100%{transform:scale(1.85);opacity:0}}
+@keyframes jiggle{0%,100%{transform:rotate(0)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)}}
+
+.lock-cta{
+  font-family:var(--sign); font-size:clamp(13px,3.4vw,19px); letter-spacing:.08em;
+  color:var(--ink); background:var(--yellow);
+  border:4px solid var(--ink); border-radius:999px;
+  padding:.7em 1.4em; box-shadow:0 7px 0 var(--ink);
+  transition:transform .1s ease, box-shadow .1s ease;
+}
+.lock:active .lock-cta{transform:translateY(7px); box-shadow:0 0 0 var(--ink)}
+.lock-note{
+  font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  color:rgba(251,244,228,.62);
+}
+
 /* ============ screen 1 : the call ============ */
+#call.is-hidden{display:none}
 #call{
   position:relative; z-index:2;
   min-height:100vh;
@@ -355,12 +418,31 @@ body::before{
 </head>
 <body>
 
-<button class="sound" id="soundBtn" type="button" aria-pressed="true">SOUND: ON</button>
+<button class="sound" id="soundBtn" type="button" aria-pressed="true" hidden>SOUND: ON</button>
 <audio id="ringAudio" src="ring.wav" loop preload="auto"></audio>
 <audio id="pickupAudio" src="pickup.wav" preload="auto"></audio>
 
+<!-- ============ SCREEN 0 : THE LOCK SCREEN ============ -->
+<!-- The browser refuses to make a sound until someone has interacted with the
+     page. Rather than hide that behind a hint, the required tap IS the first
+     beat: taking the call is what starts the ringing. -->
+<button id="lock" class="lock" type="button" aria-label="Take the call from AECS Mysuru">
+  <span class="star" style="width:44px;height:44px;background:var(--violet);top:12%;left:10%"></span>
+  <span class="star" style="width:56px;height:56px;background:var(--pink);top:16%;right:11%"></span>
+  <span class="aster" style="width:36px;height:36px;background:var(--aqua);bottom:16%;left:13%"></span>
+  <span class="aster" style="width:32px;height:32px;background:var(--yellow);bottom:22%;right:12%"></span>
+
+  <span class="lock-top"><span class="live" aria-hidden="true"></span> INCOMING CALL</span>
+  <span class="lock-name">AECS<br>MYSURU</span>
+  <span class="lock-ring" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1z"/></svg>
+  </span>
+  <span class="lock-cta">TAP TO TAKE THE CALL</span>
+  <span class="lock-note">Sound on, if you can</span>
+</button>
+
 <!-- ============ SCREEN 1 : THE CALL ============ -->
-<section id="call" aria-label="Incoming call">
+<section id="call" class="is-hidden" aria-label="Incoming call">
   <span class="star" style="width:46px;height:46px;background:var(--violet);top:7%;left:8%"></span>
   <span class="star" style="width:62px;height:62px;background:var(--aqua);top:12%;right:9%"></span>
   <span class="star" style="width:52px;height:52px;background:var(--pink);top:46%;right:6%"></span>
@@ -413,7 +495,7 @@ body::before{
   </div>
 
   <p class="quip" id="quip" role="status" aria-live="polite"></p>
-  <p class="hint" id="hint">Tap anywhere if you can&rsquo;t hear it ringing</p>
+  <p class="hint" id="hint">Pick up when you&rsquo;re ready</p>
 </section>
 
 <!-- ============ SCREEN 2 : THE INVITE ============ -->
@@ -692,11 +774,39 @@ body::before{
     quipIndex++;
   });
 
+  /* ---------- the lock screen ----------
+     This tap is what buys the page permission to make a sound, so the ringing
+     starts here rather than on page load. */
+  var lock = document.getElementById("lock");
+
+  function takeCall() {
+    if (lock.hidden || lock.classList.contains("is-gone")) return;
+    lock.classList.add("is-gone");
+    call.classList.remove("is-hidden");
+    soundBtn.hidden = false;
+    startRing(); // inside a real gesture, so the browser allows it
+    setTimeout(function () {
+      lock.hidden = true;
+      answerBtn.focus();
+    }, 380);
+  }
+
+  function skipLock() {
+    lock.classList.add("is-gone");
+    lock.hidden = true;
+    call.classList.remove("is-hidden");
+    soundBtn.hidden = false;
+  }
+
+  lock.addEventListener("click", takeCall);
+
   window.addEventListener("popstate", function () {
+    skipLock();
     if (location.hash === "#invite") answer(); else hangup();
   });
 
-  if (location.hash === "#invite") answer();
+  // a link straight to the invite skips the phone entirely
+  if (location.hash === "#invite") { skipLock(); answer(); }
 })();
 </script>
 </body>

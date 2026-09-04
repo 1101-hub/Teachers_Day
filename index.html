@@ -343,6 +343,7 @@ body::before{
 .card li .dots{flex:1 1 auto; border-bottom:2px dotted var(--rule); translate:0 -4px; min-width:14px}
 .card li .tm{font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; color:#1B2C7A}
 .card li .tm i{font-style:normal; font-size:.76em; font-weight:400; opacity:.62; margin-left:2px}
+.card li .tm.range{font-size:.9em} /* spans need the extra room */
 .card li.mark .d{font-weight:700}
 .card li.mark .tm{background:var(--yellow); padding:1px 5px; border:2px solid var(--ink)}
 .card .after{
@@ -521,7 +522,7 @@ body::before{
   </section>
 
   <h2 class="prog-title">THE PROGRAMME</h2>
-  <p class="prog-sub">Three sittings &middot; all in the auditorium</p>
+  <p class="prog-sub">Assembly first, then straight through to lunch &middot; all in the auditorium</p>
 
   <div class="cards">
     <article class="card reveal" style="--pin:#FF4D9D; animation-delay:.5s">
@@ -531,7 +532,7 @@ body::before{
       <p class="where">Auditorium &middot; from 8:40 am</p>
       <ul>
         <li class="mark"><span class="d">Lighting of the lamp</span><span class="dots"></span><span class="tm">8:40<i>am</i></span></li>
-        <li><span class="d">Garlanding Dr. Radhakrishnan&rsquo;s portrait</span><span class="dots"></span><span class="tm">8:45<i>am</i></span></li>
+        <li><span class="d">Garlanding Dr. S. Radhakrishnan&rsquo;s portrait</span><span class="dots"></span><span class="tm">8:45<i>am</i></span></li>
         <li><span class="d">Speech &mdash; Arnav Babu, Std. V</span><span class="dots"></span><span class="tm">8:50<i>am</i></span></li>
         <li><span class="d">Speech &mdash; Inchara, Std. X</span><span class="dots"></span><span class="tm">8:55<i>am</i></span></li>
         <li><span class="d">Address by the Principal</span><span class="dots"></span><span class="tm">9:00<i>am</i></span></li>
@@ -543,37 +544,36 @@ body::before{
     <article class="card reveal" style="--pin:#33D6C0; animation-delay:.6s">
       <span class="pin" aria-hidden="true"></span>
       <p class="act" style="--tab:var(--aqua)">ACT TWO &middot; LATE MORNING</p>
-      <h3>The Students&rsquo; Show</h3>
+      <h3>The Ceremony</h3>
       <p class="where">Auditorium &middot; assemble 10:45 am</p>
       <ul>
-        <li class="mark"><span class="d">Best Student-Teacher Award</span><span class="dots"></span><span class="tm">10:50<i>am</i></span></li>
-        <li><span class="d">Dance &mdash; Primary, Std. V</span><span class="dots"></span><span class="tm">10:55<i>am</i></span></li>
-        <li><span class="d">Dance &mdash; Std. X boys</span><span class="dots"></span><span class="tm">11:05<i>am</i></span></li>
-        <li><span class="d">Dance &mdash; Std. X girls</span><span class="dots"></span><span class="tm">11:10<i>am</i></span></li>
-        <li><span class="d">Talk by our alumni &mdash; 1</span><span class="dots"></span><span class="tm">11:20<i>am</i></span></li>
-        <li><span class="d">Talk by our alumni &mdash; 2</span><span class="dots"></span><span class="tm">11:25<i>am</i></span></li>
-        <li class="mark"><span class="d">Game for the teachers</span><span class="dots"></span><span class="tm">11:30<i>am</i></span></li>
-        <li><span class="d">Dispersal of students</span><span class="dots"></span><span class="tm">12:15<i>pm</i></span></li>
+        <li class="mark"><span class="d">Welcoming the Chief Guest &mdash; by the Principal</span><span class="dots"></span><span class="tm">10:50<i>am</i></span></li>
+        <li><span class="d">Garlanding Dr. S. Radhakrishnan&rsquo;s portrait</span><span class="dots"></span><span class="tm">10:55<i>am</i></span></li>
+        <li class="mark"><span class="d">Address by the Chief Guest</span><span class="dots"></span><span class="tm">11:00<i>am</i></span></li>
+        <li class="mark"><span class="d">Best Student-Teacher prize distribution</span><span class="dots"></span><span class="tm">11:05<i>am</i></span></li>
+        <li><span class="d">Dance &mdash; Primary, Std. V</span><span class="dots"></span><span class="tm">11:10<i>am</i></span></li>
+        <li><span class="d">Dance &mdash; Std. X boys</span><span class="dots"></span><span class="tm">11:20<i>am</i></span></li>
+        <li><span class="d">Dance &mdash; Std. X girls</span><span class="dots"></span><span class="tm">11:35<i>am</i></span></li>
+        <li><span class="d">Talk by our alumni &mdash; 1</span><span class="dots"></span><span class="tm">11:45<i>am</i></span></li>
+        <li><span class="d">Talk by our alumni &mdash; 2</span><span class="dots"></span><span class="tm">11:50<i>am</i></span></li>
+        <li><span class="d">Group song by the teachers</span><span class="dots"></span><span class="tm">11:55<i>am</i></span></li>
+        <li><span class="d">Vote of thanks &mdash; Vice Principal</span><span class="dots"></span><span class="tm">11:55<i>am</i></span></li>
       </ul>
+      <p class="after">Please be seated by 10:45 sharp!</p>
     </article>
 
     <article class="card reveal" style="--pin:#FFC81F; animation-delay:.7s">
       <span class="pin" aria-hidden="true"></span>
-      <p class="act" style="--tab:var(--pink)">ACT THREE &middot; AFTERNOON</p>
+      <p class="act" style="--tab:var(--pink)">ACT THREE &middot; MIDDAY</p>
       <h3>For the Teachers</h3>
-      <p class="where">Auditorium &middot; assemble 12:45 pm</p>
+      <p class="where">Auditorium &middot; 12:00 noon onward</p>
       <ul>
-        <li class="mark"><span class="d">Welcoming the Chief Guest</span><span class="dots"></span><span class="tm">12:45<i>pm</i></span></li>
-        <li><span class="d">Lighting of the lamp</span><span class="dots"></span><span class="tm">12:50<i>pm</i></span></li>
-        <li><span class="d">Garlanding Dr. Radhakrishnan&rsquo;s portrait</span><span class="dots"></span><span class="tm">12:55<i>pm</i></span></li>
-        <li><span class="d">Group song by the teachers</span><span class="dots"></span><span class="tm">1:00<i>pm</i></span></li>
-        <li><span class="d">Dance &mdash; Primary, Std. V</span><span class="dots"></span><span class="tm">1:05<i>pm</i></span></li>
-        <li><span class="d">Dance &mdash; Secondary, Std. X</span><span class="dots"></span><span class="tm">1:15<i>pm</i></span></li>
-        <li class="mark"><span class="d">Gift vouchers for teachers</span><span class="dots"></span><span class="tm">1:20<i>pm</i></span></li>
-        <li><span class="d">Vote of thanks &mdash; Vice Principal</span><span class="dots"></span><span class="tm">1:55<i>pm</i></span></li>
-        <li class="mark"><span class="d">Lunch</span><span class="dots"></span><span class="tm">2:00<i>pm</i></span></li>
+        <li class="mark"><span class="d">Game for the teachers</span><span class="dots"></span><span class="tm range">12:00&ndash;12:25<i>pm</i></span></li>
+        <li><span class="d">Dispersal of students</span><span class="dots"></span><span class="tm range">12:25&ndash;12:40<i>pm</i></span></li>
+        <li class="mark"><span class="d">Gift coupons for the teachers</span><span class="dots"></span><span class="tm range">12:45&ndash;1:10<i>pm</i></span></li>
+        <li class="mark"><span class="d">Breaking for lunch</span><span class="dots"></span><span class="tm">1:15<i>pm</i></span></li>
       </ul>
-      <p class="after">Please be seated by 12:45 pm sharp!</p>
+      <p class="after">The day finishes together, over lunch</p>
     </article>
   </div>
 
